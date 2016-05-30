@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `HttpConnection` struct in crate `solicit`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, HttpConnection">
+
+    <title>solicit::http::connection::HttpConnection - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../../../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../../../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'><a href='../../index.html'>solicit</a>::<wbr><a href='../index.html'>http</a>::<wbr><a href='index.html'>connection</a></p><script>window.sidebarCurrent = {name: 'HttpConnection', ty: 'struct', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content struct">
+<h1 class='fqn'><span class='in-band'>Struct <a href='../../index.html'>solicit</a>::<wbr><a href='../index.html'>http</a>::<wbr><a href='index.html'>connection</a>::<wbr><a class='struct' href=''>HttpConnection</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a id='src-1306' class='srclink' href='../../../src/solicit/src/http/connection.rs.html#102-113' title='goto source code'>[src]</a></span></h1>
+<pre class='rust struct'>pub struct HttpConnection {
+    pub scheme: <a class='enum' href='../../../solicit/http/enum.HttpScheme.html' title='solicit::http::HttpScheme'>HttpScheme</a>,
+    // some fields omitted
+}</pre><div class='docblock'><p>The struct implements the HTTP/2 connection level logic.</p>
+
+<p>This means that the struct is a bridge between the low level raw frame reads/writes (i.e. what
+the <code>SendFrame</code> and <code>ReceiveFrame</code> traits do) and the higher session-level logic.</p>
+
+<p>Therefore, it provides an API that exposes higher-level write operations, such as writing
+headers or data, that take care of all the underlying frame construction that is required.</p>
+
+<p>Similarly, it provides an API for handling events that arise from receiving frames, without
+requiring the higher level to directly look at the frames themselves, rather only the semantic
+content within the frames.</p>
+</div><h2 class='fields'>Fields</h2>
+<table><tr class='stab '>
+                             <td id='structfield.scheme'><code>scheme</code></td><td><div class='docblock'><p>The scheme of the connection</p>
+</div></td></tr></table><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl <a class='struct' href='../../../solicit/http/connection/struct.HttpConnection.html' title='solicit::http::connection::HttpConnection'>HttpConnection</a></code></h3><div class='impl-items'><h4 id='method.new' class='method'><code>fn <a href='#method.new' class='fnname'>new</a>(scheme: <a class='enum' href='../../../solicit/http/enum.HttpScheme.html' title='solicit::http::HttpScheme'>HttpScheme</a>) -&gt; <a class='struct' href='../../../solicit/http/connection/struct.HttpConnection.html' title='solicit::http::connection::HttpConnection'>HttpConnection</a></code></h4>
+<div class='docblock'><p>Creates a new <code>HttpConnection</code> that will use the given sender
+for writing frames.</p>
+</div><h4 id='method.sender' class='method'><code>fn <a href='#method.sender' class='fnname'>sender</a>&lt;'a, S: <a class='trait' href='../../../solicit/http/connection/trait.SendFrame.html' title='solicit::http::connection::SendFrame'>SendFrame</a>&gt;(&amp;'a mut self, sender: &amp;'a mut S) -&gt; <a class='struct' href='../../../solicit/http/connection/struct.HttpConnectionSender.html' title='solicit::http::connection::HttpConnectionSender'>HttpConnectionSender</a>&lt;S&gt;</code></h4>
+<div class='docblock'><p>Creates a new <code>HttpConnectionSender</code> instance that will use the given <code>SendFrame</code> instance
+to send the frames that it prepares. This is a convenience struct so that clients do not
+have to pass the same <code>sender</code> reference to multiple send methods.</p>
+
+<h1 id='example' class='section-header'><a href='#example'>Example</a></h1>
+<pre class='rust rust-example-rendered'>
+<span class='kw'>use</span> <span class='ident'>solicit</span>::<span class='ident'>http</span>::{<span class='ident'>HttpScheme</span>, <span class='ident'>HttpResult</span>};
+<span class='kw'>use</span> <span class='ident'>solicit</span>::<span class='ident'>http</span>::<span class='ident'>frame</span>::<span class='ident'>FrameIR</span>;
+<span class='kw'>use</span> <span class='ident'>solicit</span>::<span class='ident'>http</span>::<span class='ident'>connection</span>::{<span class='ident'>HttpConnection</span>, <span class='ident'>SendFrame</span>};
+<span class='kw'>struct</span> <span class='ident'>FakeSender</span>;
+<span class='kw'>impl</span> <span class='ident'>SendFrame</span> <span class='kw'>for</span> <span class='ident'>FakeSender</span> {
+    <span class='kw'>fn</span> <span class='ident'>send_frame</span><span class='op'>&lt;</span><span class='ident'>F</span>: <span class='ident'>FrameIR</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>frame</span>: <span class='ident'>F</span>) <span class='op'>-&gt;</span> <span class='ident'>HttpResult</span><span class='op'>&lt;</span>()<span class='op'>&gt;</span> {
+        <span class='comment'>// Does not actually send anything!</span>
+        <span class='prelude-val'>Ok</span>(())
+    }
+}
+<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>conn</span> <span class='op'>=</span> <span class='ident'>HttpConnection</span>::<span class='ident'>new</span>(<span class='ident'>HttpScheme</span>::<span class='ident'>Http</span>);
+{
+    <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>frame_sender</span> <span class='op'>=</span> <span class='ident'>FakeSender</span>;
+    <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>sender</span> <span class='op'>=</span> <span class='ident'>conn</span>.<span class='ident'>sender</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>frame_sender</span>);
+    <span class='comment'>// Now we can use the provided sender to queue multiple HTTP/2 write operations,</span>
+    <span class='comment'>// without passing the same FakeSender reference to every single method.</span>
+    <span class='ident'>sender</span>.<span class='ident'>send_settings_ack</span>().<span class='ident'>unwrap</span>();
+    <span class='comment'>// While the `sender` is active, though, the original `conn` cannot be used, as the</span>
+    <span class='comment'>// sender holds on a mutable reference to it...</span>
+}
+<span class='comment'>// A sender can be obtained, immediately used, and discarded:</span>
+<span class='ident'>conn</span>.<span class='ident'>sender</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>FakeSender</span>).<span class='ident'>send_settings_ack</span>();</pre>
+</div><h4 id='method.in_window_size' class='method'><code>fn <a href='#method.in_window_size' class='fnname'>in_window_size</a>(&amp;self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.i32.html'>i32</a></code></h4>
+<div class='docblock'><p>Returns the current size of the inbound flow control window (i.e. the number of octets that
+the connection will accept and the peer will send at most, unless the window is updated).</p>
+</div><h4 id='method.out_window_size' class='method'><code>fn <a href='#method.out_window_size' class='fnname'>out_window_size</a>(&amp;self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.i32.html'>i32</a></code></h4>
+<div class='docblock'><p>Returns the current size of the outbound flow control window (i.e. the number of octets
+that can be sent on the connection to the peer without violating flow control).</p>
+</div><h4 id='method.expect_settings' class='method'><code>fn <a href='#method.expect_settings' class='fnname'>expect_settings</a>&lt;Recv: <a class='trait' href='../../../solicit/http/connection/trait.ReceiveFrame.html' title='solicit::http::connection::ReceiveFrame'>ReceiveFrame</a>, Sess: <a class='trait' href='../../../solicit/http/session/trait.Session.html' title='solicit::http::session::Session'>Session</a>&gt;(&amp;mut self, rx: &amp;mut Recv, session: &amp;mut Sess) -&gt; <a class='type' href='../../../solicit/http/type.HttpResult.html' title='solicit::http::HttpResult'>HttpResult</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>&gt;</code></h4>
+<div class='docblock'><p>The method processes the next frame provided by the given <code>ReceiveFrame</code> instance, expecting
+it to be a SETTINGS frame.
+Additionally, the frame cannot be an ACK settings frame, but rather it should contain the
+peer&#39;s settings.</p>
+
+<p>The method can be used when the receipt of the peer&#39;s preface needs to be asserted, such as
+when the connection is first initiated (the first frame on a fresh HTTP/2 connection that
+any peer sends must be a SETTINGS frame).</p>
+
+<p>If the received frame is not a SETTINGS frame, an <code>HttpError::UnableToConnect</code> variant is
+returned. (TODO: Change this variant&#39;s name, as it is a byproduct of this method&#39;s legacy)</p>
+</div><h4 id='method.handle_next_frame' class='method'><code>fn <a href='#method.handle_next_frame' class='fnname'>handle_next_frame</a>&lt;Recv: <a class='trait' href='../../../solicit/http/connection/trait.ReceiveFrame.html' title='solicit::http::connection::ReceiveFrame'>ReceiveFrame</a>, Sess: <a class='trait' href='../../../solicit/http/session/trait.Session.html' title='solicit::http::session::Session'>Session</a>&gt;(&amp;mut self, rx: &amp;mut Recv, session: &amp;mut Sess) -&gt; <a class='type' href='../../../solicit/http/type.HttpResult.html' title='solicit::http::HttpResult'>HttpResult</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>&gt;</code></h4>
+<div class='docblock'><p>Handles the next frame incoming on the given <code>ReceiveFrame</code> instance.</p>
+
+<p>The <code>HttpConnection</code> takes care of parsing the frame and extracting the semantics behind it
+and passes this on to the higher level by invoking (possibly multiple) callbacks on the
+given <code>Session</code> instance. For information on which events can be passed to the session,
+check out the <code>Session</code> trait.</p>
+
+<p>If the handling is successful, a unit <code>Ok</code> is returned; all HTTP and IO errors are
+propagated.</p>
+</div></div></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../../../";
+        window.currentCrate = "solicit";
+        window.playgroundUrl = "";
+    </script>
+    <script src="../../../jquery.js"></script>
+    <script src="../../../main.js"></script>
+    
+    <script defer src="../../../search-index.js"></script>
+</body>
+</html>
