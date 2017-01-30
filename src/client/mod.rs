@@ -4,6 +4,7 @@
 
 pub use self::simple::SimpleClient;
 pub use self::async::Client;
+pub use self::async::ClientConnectError;
 
 mod simple;
 mod async;
