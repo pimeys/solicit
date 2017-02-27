@@ -17,9 +17,10 @@ hpack = "0.3"
 log = "^0.3"
 
 [dependencies.openssl]
-version = "0.9"
+version = "0.7"
+features = ["tlsv1_2", "npn"]
 optional = true
 
 [features]
 live_tests = []
-tls = ["openssl"]
+tls = ["openssl", "openssl/tlsv1_2", "openssl/npn"]
