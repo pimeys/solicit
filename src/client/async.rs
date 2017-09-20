@@ -758,7 +758,10 @@ impl Client {
 
         match res {
             Ok(_) => Some(resp_rx),
-            Err(_) => None,
+            Err(e) => {
+                error!("Critical error in HTTP2: {:?}", e);
+                None
+            },
         }
     }
 
